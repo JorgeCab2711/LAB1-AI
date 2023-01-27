@@ -19,13 +19,7 @@ class AIL():
         )
         self.segmentmanipulation()
 
-    # Function sets the segment limits on image
-    def setSegments(self, segmentW, segmentH):
-        segments = []
-        for y in range(0, self.height, segmentH):
-            for x in range(0, self.width, segmentW):
-                segment = self.image.crop((x, y, x + segmentW, y + segmentH))
-                segments.append(segment)
+    
 
     # Funciton generates an array with all pixel information -> cami_pixel = ((x,y), (R,G,B))
     def genPixInfList(self):
@@ -35,12 +29,12 @@ class AIL():
                 cam_pixels.append(((x, y), (self.pixel_coords[x, y])))
         return cam_pixels
 
-    def segmentmanipulation(self):
-        segments = self.segments
-        print(segments)
 
     def imageFinish(self):
         self.image.save('Result.bmp')
+
+
+
 
 
 # Gets the color from the pixel range in a general range

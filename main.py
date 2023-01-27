@@ -2,14 +2,29 @@ import AILib as ai
 from PIL import Image
 import numpy as np
 # TODO change this to input
-PATH = "Images\\test.bmp"
+path = "Images\\test.bmp"
+newPath = ''
+
+im = Image.open(path)
+
+# if ".bmp" not in path:
+#     with Image.open(path) as im:
+#         im.convert("1")
+#         if 'png' in path:
+#             newPath = path.replace('png','bmp')   
+#             im.save(''+newPath)
+#         elif 'jpg' in path:
+#             newPath = im.save(path.replace('jpg','bmp'))
+#             im.save(newPath)
+#         if path != newPath:
+#             im = Image.open(newPath)
+            
 
 
-im = Image.open(PATH)
 
 
 # Specify the size of the tiles
-tile_size = (15, 15)
+tile_size = (10, 10)
 
 # Calculate the number of tiles
 n_tiles = (im.width // tile_size[0] + 1, im.height // tile_size[1] + 1)
@@ -23,9 +38,10 @@ for i in range(n_tiles[0]):
         tile = im.crop((x, y, x + tile_size[0], y + tile_size[1]))
         pixels = tile.getdata()
         # Number of pixels of each color by tile
-        red_pixels = sum(1 for pixel in pixels if pixel == (255, 0, 0))
-        green_pixels = sum(1 for pixel in pixels if pixel == (0, 255, 0))
-        black_pixels = sum(1 for pixel in pixels if pixel == (0, 0, 0))
+        pixel_colors = np.array([ai.get_color(pixel) for pixel in pixels])
+        red_pixels = np.count_nonzero(pixel_colors == 'red')
+        green_pixels = np.count_nonzero(pixel_colors == 'green')
+        black_pixels = np.count_nonzero(pixel_colors == 'black')
         # total pixels
         total_pixels = len(pixels)
         # Percentage of color of pixels by tile
@@ -46,4 +62,4 @@ for i in range(n_tiles[0]):
 
         im.paste(tile, (x, y))
 
-im.save('Result.bmp')
+im.save('./output/Result.bmp')
