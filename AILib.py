@@ -1,6 +1,15 @@
-from PIL import Image
+'''
+Universidad del Valle de Guatemala
+Inteligencia Artificial
+Laboratorio 1
+Autor: Jorge Caballeros Perez
+Purpose: Create an AI that can solve a labrynth using BFS, DFS, and Euristics
+'''
+
+from PIL import Image, ImageDraw
 from PIL import ImageOps
 import numpy as np
+import random
 
 
 class AIL():
@@ -12,10 +21,44 @@ class AIL():
         self.pixel_coords = self.image.load()
         # Image height and width
         self.height, self.width = self.image.size
+        # Mapping all the tiles
+        self.mapped_coords = self.map_image()
+        # Mapped Tile lists
+        self.tile_list = self.map_image()
+        self.wall_tiles = []
+        self.green_tiles = []
+        self.red_tiles = []
         # Tile size
+        '''
+        NOTE:   play with the tile size if the border density is too big, the lower the size, 
+                the better the image quality, but this affects performance a lot.
+        '''
         self.tile_width = 10
         self.tile_height = 10
+        # Correct the image to tiles
         self.genTiles(self.tile_width, self.tile_height)
+        # set the borders
+        self.setBorders()
+        # set the start tile randomly
+        self.start_tile = self.set_start()
+        self.current_tile = (self.start_tile[0], (255, 76, 80))
+        # Start the AI
+        self.move_up(self.current_tile)
+
+    # Setting the labrynth's borders
+    def setBorders(self):
+        # Loop through all the tiles in the image
+        for i in range(0, self.width, self.tile_width):
+            for j in range(0, self.height, self.tile_height):
+                # If the tile is a border tile
+                if i == 0 or i == self.width-self.tile_width or j == 0 or j == self.height-self.tile_height:
+                    # Paint the tile black
+                    for k in range(self.tile_width):
+                        for l in range(self.tile_height):
+                            self.image.putpixel((i+k, j+l), (0, 0, 0))
+
+        # Save the new image
+        self.image.save("./output/Result.bmp")
 
     # Function to check if image is valid bmp format if not convert it to bmp
     def checkImage(self, path):
@@ -34,61 +77,9 @@ class AIL():
                     im = Image.open(newPath)
         return im
 
-    # Funciton generates an array with all pixel information -> cami_pixel = ((x,y), (R,G,B))
-    def genPixInfList(self):
-        cam_pixels = []
-        for x in range(self.width):
-            for y in range(self.height):
-                cam_pixels.append(((x, y), (self.pixel_coords[x, y])))
-        return cam_pixels
-
     # simple use of the save function to output the image on the desired folder
     def imageFinish(self):
         self.image.save('output/Result.bmp')
-
-    # Map the image by tiles and return the resulting image
-    def genTiles(self, tile_width, tile_height):
-        # Specify the size of the tiles
-        tile_size = (tile_width, tile_height)
-
-        # Calculate the number of tiles
-        n_tiles = (self.image.width //
-                   tile_size[0] + 1, self.image.height // tile_size[1] + 1)
-
-        tile_list = []
-
-        for i in range(n_tiles[0]):
-            for j in range(n_tiles[1]):
-                x = i * tile_size[0]
-                y = j * tile_size[1]
-                tile = self.image.crop(
-                    (x, y, x + tile_size[0], y + tile_size[1]))
-                pixels = tile.getdata()
-                # Number of pixels of each color by tile
-                pixel_colors = np.array([self.get_color(pixel)
-                                        for pixel in pixels])
-                red_pixels = np.count_nonzero(pixel_colors == 'red')
-                green_pixels = np.count_nonzero(pixel_colors == 'green')
-                black_pixels = np.count_nonzero(pixel_colors == 'black')
-                # total pixels
-                total_pixels = len(pixels)
-                # Percentage of color of pixels by tile
-                black_percent = black_pixels / total_pixels
-                green_percent = green_pixels / total_pixels
-                red_percent = red_pixels / total_pixels
-                if black_percent > 0.9:
-                    tile = Image.new('RGB', tile_size, (0, 0, 0))
-
-                elif green_percent > 0.9:
-                    tile = Image.new('RGB', tile_size, (0, 255, 0))
-
-                elif red_percent > 0.9:
-                    tile = Image.new('RGB', tile_size, (255, 0, 0))
-
-                elif black_percent < 0.9:
-                    tile = Image.new('RGB', tile_size, (255, 255, 255))
-
-                self.image.paste(tile, (x, y))
 
     # Gets the color from the pixel range in a general range
     def get_color(self, color):
@@ -103,3 +94,120 @@ class AIL():
             return 'black'
         elif r < 200 and g < 200 and b < 200:
             return 'white'
+
+    # Paints the tile in image
+
+    def paint_tile(self, tile):
+        self.image.paste(tile, (250, 250))
+
+    # Map the image by tiles and return the resulting image
+
+    def genTiles(self, tile_width, tile_height):
+
+        # Specify the size of the tiles
+        self.tile_size = (tile_width, tile_height)
+        # Calculate the number of tiles
+        n_tiles = (self.image.width //
+                   self.tile_size[0] + 1, self.image.height // self.tile_size[1] + 1)
+
+        for i in range(n_tiles[0]):
+            for j in range(n_tiles[1]):
+                x = i * self.tile_size[0]
+                y = j * self.tile_size[1]
+                tile = self.image.crop(
+                    (x, y, x + self.tile_size[0], y + self.tile_size[1]))
+                pixels = tile.getdata()
+                self.tile_list.append(tile)
+
+                # Number of pixels of each color by tile
+                pixel_colors = np.array([self.get_color(pixel)
+                                        for pixel in pixels])
+                red_pixels = np.count_nonzero(pixel_colors == 'red')
+                green_pixels = np.count_nonzero(pixel_colors == 'green')
+                black_pixels = np.count_nonzero(pixel_colors == 'black')
+                # total pixels
+                total_pixels = len(pixels)
+                # Percentage of color of pixels by tile
+                black_percent = black_pixels / total_pixels
+                green_percent = green_pixels / total_pixels
+                red_percent = red_pixels / total_pixels
+                if black_percent > 0.9:
+                    tile = Image.new('RGB', self.tile_size, (0, 0, 0))
+                    # Map the tile to: (x cord, y cord, (color))
+                    mapped_tile = (((x, y), tile.getpixel((0, 0))))
+                    self.wall_tiles.append(mapped_tile)
+
+                elif green_percent > 0.9:
+                    tile = Image.new('RGB', self.tile_size, (0, 255, 0))
+                    # Map the tile to: (x cord, y cord, (color))
+                    self.green_tiles.append(((x, y), tile.getpixel((0, 0))))
+
+                elif red_percent > 0.9:
+                    tile = Image.new('RGB', self.tile_size, (255, 0, 0))
+                    # Map the tile to: (x cord, y cord, (color))
+                    self.red_tiles.append(((x, y), tile.getpixel((0, 0))))
+
+                elif black_percent < 0.9:
+                    tile = Image.new('RGB', self.tile_size, (255, 255, 255))
+
+                self.image.paste(tile, (x, y))
+
+    # Funciton generates an array with all pixel information -> cami_pixel = ((x,y), (R,G,B))
+    def map_image(self):
+        cam_pixels = []
+        for x in range(self.width):
+            for y in range(self.height):
+                cam_pixels.append(((x, y), (self.pixel_coords[x, y])))
+        return cam_pixels
+
+    # sets the initial tile where it will start randomly
+    def set_start(self):
+        start = self.green_tiles
+        return start[random.randint(0, len(start)-1)]
+
+
+# ------------------------MOVES/ Actions------------------------
+
+    # move tile right
+
+    def move_right(self, current_tile):
+        # setting the position and color of the current tile
+        position = (current_tile[0][0]+self.tile_size[0], current_tile[0][1])
+        color = current_tile[1]
+
+        # setting current_tile to move right
+        self.current_tile = ((position), color)
+        # saving changes
+        tile = Image.new('RGB', self.tile_size, color)
+        self.image.paste(tile, position)
+        self.image.save('./output/Result.bmp')
+
+    # move tile left
+    def move_left(self, current_tile):
+        # setting the position and color of the current tile
+        position = (current_tile[0][0]-self.tile_size[0], current_tile[0][1])
+        color = current_tile[1]
+        # saving changes
+        tile = Image.new('RGB', self.tile_size, color)
+        self.image.paste(tile, position)
+
+    # move tile up
+    def move_up(self, current_tile):
+        # setting the position and color of the current tile
+        position = (current_tile[0][0], current_tile[0][1]+self.tile_size[1])
+        color = current_tile[1]
+        # saving changes
+        tile = Image.new('RGB', self.tile_size, color)
+        self.image.paste(tile, position)
+
+    # move tile down
+    def move_down(self, current_tile):
+        # setting the position and color of the current tile
+        position = (current_tile[0][0], current_tile[0][1]-self.tile_size[1])
+        color = current_tile[1]
+        # saving changes
+        tile = Image.new('RGB', self.tile_size, color)
+        self.image.paste(tile, position)
+
+
+# ------------------------Graph Searches------------------------
