@@ -6,10 +6,10 @@ Autor: Jorge Caballeros Perez
 Purpose: Create an AI that can solve a labrynth using BFS, DFS, and Euristics
 '''
 
-from PIL import Image, ImageDraw
-from PIL import ImageOps
+from PIL import Image
 import numpy as np
 import random
+from framework import GraphSearch
 
 
 class AIL():
@@ -39,13 +39,24 @@ class AIL():
         self.genTiles(self.tile_width, self.tile_height)
         # set the borders
         self.setBorders()
-        # set the start tile randomly
-        self.start_tile = self.set_start()
-        self.current_tile = (self.start_tile[0], (255, 76, 80))
+        # set the start and end tiles randomly
+        self.start_tile = self.get_start()
+        self.end_tile = self.get_end()
+
+        print(self.end_tile, ' end tile')
+        print(self.start_tile, ' start tile')
+
+        # clean the matrix
+        matrix = self.cleanMatrix()
+
         # Start the AI
-        self.move_up(self.current_tile)
+        # print(matrix)
+
+        path = GraphSearch.dfs(matrix, self.start_tile, self.end_tile)
+        print(path)
 
     # Setting the labrynth's borders
+
     def setBorders(self):
         # Loop through all the tiles in the image
         for i in range(0, self.width, self.tile_width):
@@ -95,11 +106,6 @@ class AIL():
         elif r < 200 and g < 200 and b < 200:
             return 'white'
 
-    # Paints the tile in image
-
-    def paint_tile(self, tile):
-        self.image.paste(tile, (250, 250))
-
     # Map the image by tiles and return the resulting image
 
     def genTiles(self, tile_width, tile_height):
@@ -134,18 +140,18 @@ class AIL():
                 if black_percent > 0.9:
                     tile = Image.new('RGB', self.tile_size, (0, 0, 0))
                     # Map the tile to: (x cord, y cord, (color))
-                    mapped_tile = (((x, y), tile.getpixel((0, 0))))
+                    mapped_tile = ((x, y))
                     self.wall_tiles.append(mapped_tile)
 
                 elif green_percent > 0.9:
                     tile = Image.new('RGB', self.tile_size, (0, 255, 0))
                     # Map the tile to: (x cord, y cord, (color))
-                    self.green_tiles.append(((x, y), tile.getpixel((0, 0))))
+                    self.green_tiles.append((x, y))
 
                 elif red_percent > 0.9:
                     tile = Image.new('RGB', self.tile_size, (255, 0, 0))
                     # Map the tile to: (x cord, y cord, (color))
-                    self.red_tiles.append(((x, y), tile.getpixel((0, 0))))
+                    self.red_tiles.append((x, y))
 
                 elif black_percent < 0.9:
                     tile = Image.new('RGB', self.tile_size, (255, 255, 255))
@@ -157,57 +163,23 @@ class AIL():
         cam_pixels = []
         for x in range(self.width):
             for y in range(self.height):
-                cam_pixels.append(((x, y), (self.pixel_coords[x, y])))
+                cam_pixels.append((x, y))
         return cam_pixels
 
     # sets the initial tile where it will start randomly
-    def set_start(self):
+    def get_start(self):
         start = self.green_tiles
         return start[random.randint(0, len(start)-1)]
 
+    def get_end(self):
+        end = self.red_tiles
+        return end[random.randint(0, len(end)-1)]
 
-# ------------------------MOVES/ Actions------------------------
-
-    # move tile right
-
-    def move_right(self, current_tile):
-        # setting the position and color of the current tile
-        position = (current_tile[0][0]+self.tile_size[0], current_tile[0][1])
-        color = current_tile[1]
-
-        # setting current_tile to move right
-        self.current_tile = ((position), color)
-        # saving changes
-        tile = Image.new('RGB', self.tile_size, color)
-        self.image.paste(tile, position)
-        self.image.save('./output/Result.bmp')
-
-    # move tile left
-    def move_left(self, current_tile):
-        # setting the position and color of the current tile
-        position = (current_tile[0][0]-self.tile_size[0], current_tile[0][1])
-        color = current_tile[1]
-        # saving changes
-        tile = Image.new('RGB', self.tile_size, color)
-        self.image.paste(tile, position)
-
-    # move tile up
-    def move_up(self, current_tile):
-        # setting the position and color of the current tile
-        position = (current_tile[0][0], current_tile[0][1]+self.tile_size[1])
-        color = current_tile[1]
-        # saving changes
-        tile = Image.new('RGB', self.tile_size, color)
-        self.image.paste(tile, position)
-
-    # move tile down
-    def move_down(self, current_tile):
-        # setting the position and color of the current tile
-        position = (current_tile[0][0], current_tile[0][1]-self.tile_size[1])
-        color = current_tile[1]
-        # saving changes
-        tile = Image.new('RGB', self.tile_size, color)
-        self.image.paste(tile, position)
-
-
-# ------------------------Graph Searches------------------------
+    def cleanMatrix(self):
+        clMatrix = self.mapped_coords
+        for i in self.wall_tiles:
+            if i in clMatrix:
+                clMatrix.remove(i)
+            else:
+                pass
+        return clMatrix
