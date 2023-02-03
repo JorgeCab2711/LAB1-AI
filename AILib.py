@@ -52,11 +52,12 @@ class AIL():
         # Start the AI
         # print(matrix)
 
-        path = GraphSearch.dfs(matrix, self.start_tile,
-                               self.end_tile, self.wall_tiles)
-        self.paintMatrix(path)
-        if path[-1] == self.end_tile:
-            print('nice')
+        path = GraphSearch.dfs(matrix, self.start_tile, self.end_tile)
+        print(path)
+        for i in path:
+            newImage = Image.new('RGB', self.tile_size, (255, 100, 100))
+            self.image.paste(newImage, )
+
     # Setting the labrynth's borders
 
     def setBorders(self):
