@@ -54,6 +54,9 @@ class AIL():
 
         path = GraphSearch.dfs(matrix, self.start_tile, self.end_tile)
         print(path)
+        for i in path:
+            newImage = Image.new('RGB', self.tile_size, (255,100,100))
+            self.image.paste(newImage, )
 
     # Setting the labrynth's borders
 
