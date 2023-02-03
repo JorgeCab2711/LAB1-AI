@@ -47,14 +47,16 @@ class AIL():
         print(self.start_tile, ' start tile')
 
         # clean the matrix
-        matrix = self.cleanMatrix()
+        matrix = self.tile_list
 
         # Start the AI
         # print(matrix)
 
-        path = GraphSearch.dfs(matrix, self.start_tile, self.end_tile)
-        print(path)
-
+        path = GraphSearch.dfs(matrix, self.start_tile,
+                               self.end_tile, self.wall_tiles)
+        self.paintMatrix(path)
+        if path[-1] == self.end_tile:
+            print('nice')
     # Setting the labrynth's borders
 
     def setBorders(self):
@@ -175,11 +177,10 @@ class AIL():
         end = self.red_tiles
         return end[random.randint(0, len(end)-1)]
 
-    def cleanMatrix(self):
-        clMatrix = self.mapped_coords
-        for i in self.wall_tiles:
-            if i in clMatrix:
-                clMatrix.remove(i)
-            else:
-                pass
-        return clMatrix
+    def paintMatrix(self, matrix):
+        count = 0
+        for x, y in matrix:
+            newImage = Image.new('RGB', self.tile_size, (204, 90, 90))
+            count += 1
+            print(count)
+            self.image.paste(newImage, (x, y))
