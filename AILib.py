@@ -21,10 +21,9 @@ class AIL():
         self.pixel_coords = self.image.load()
         # Image height and width
         self.height, self.width = self.image.size
-        # # Mapping all the tiles
-        # self.mapped_coords = self.map_image()
+        # Initialize an empty matrix with the defined size
+        self.matrix = []
         # Mapped Tile lists
-        self.main_matrix = []
         self.path_tiles = []
         self.wall_tiles = []
         self.green_tiles = []
@@ -38,10 +37,10 @@ class AIL():
         self.tile_height = 10
         # Correct the image to tiles
         self.genTiles(self.tile_width, self.tile_height)
-        # clean the matrix
-        self.cleanMainMatrix()
+        print(self.matrix)
+
         # Start the AI
-        gs = GraphSearch()
+
         # path = gs.dfs(self.main_matrix, (0, 0), (0, 1))
 
     # Map the image by tiles and return the resulting image
@@ -54,6 +53,9 @@ class AIL():
         n_tiles = (self.image.width //
                    self.tile_size[0] + 1, self.image.height // self.tile_size[1] + 1)
 
+        self.matrix = [[0 for x in range(n_tiles[0]*10)]
+                       for y in range(n_tiles[1]*10)]
+
         for i in range(n_tiles[0]):
             for j in range(n_tiles[1]):
                 x = i * self.tile_size[0]
@@ -61,7 +63,6 @@ class AIL():
                 tile = self.image.crop(
                     (x, y, x + self.tile_size[0], y + self.tile_size[1]))
                 pixels = tile.getdata()
-                self.main_matrix.append((x, y))
 
                 # Number of pixels of each color by tile
                 pixel_colors = np.array([self.get_color(pixel)
@@ -79,31 +80,35 @@ class AIL():
                 # If tile is black
                 if black_percent > 0.9:
                     tile = Image.new('RGB', self.tile_size, (0, 0, 0))
+                    self.matrix[x][y] = 1
                     # Map the tile to: (x cord, y cord)
                     self.wall_tiles.append((x, y))
+                    self.path_tiles.append((x, y))
                 # If tile is green
                 elif green_percent > 0.9:
+                    self.matrix[x][y] = 0
                     tile = Image.new('RGB', self.tile_size, (0, 255, 0))
                     # Map the tile to: (x cord, y cord)
                     self.green_tiles.append((x, y))
+                    self.path_tiles.append((x, y))
                 # If tile is red
                 elif red_percent > 0.9:
+                    self.matrix[x][y] = 0
                     tile = Image.new('RGB', self.tile_size, (255, 0, 0))
                     # Map the tile to: (x cord, y cord)
                     self.red_tiles.append((x, y))
+                    self.path_tiles.append((x, y))
+
                 # If tile is white
                 else:
+                    self.matrix[x][y] = 0
                     self.path_tiles.append((x, y))
                     tile = Image.new('RGB', self.tile_size, (255, 255, 255))
 
                 self.image.paste(tile, (x, y))
 
-    def cleanMainMatrix(self):
-        for i in self.main_matrix:
-            if i in self.wall_tiles:
-                self.main_matrix.remove(i)
-
     # Function to check if image is valid bmp format if not convert it to bmp
+
     def checkImage(self, path):
         newPath = ''
         im = Image.open(path)
