@@ -21,13 +21,15 @@ class AIL():
         self.pixel_coords = self.image.load()
         # Image height and width
         self.height, self.width = self.image.size
-        # Initialize an empty matrix with the defined size
-        self.matrix = []
+
         # Mapped Tile lists
         self.path_tiles = []
         self.wall_tiles = []
         self.green_tiles = []
         self.red_tiles = []
+        # Initialize an empty matrix with the defined size
+        self.matrix = []
+
         # Tile size
         '''
         NOTE:   play with the tile size if the border density is too big, the lower the size,
@@ -37,11 +39,15 @@ class AIL():
         self.tile_height = 10
         # Correct the image to tiles
         self.genTiles(self.tile_width, self.tile_height)
-        print(self.matrix)
+        self.start = self.get_start()
+        self.end = self.get_end()
 
         # Start the AI
-
-        # path = gs.dfs(self.main_matrix, (0, 0), (0, 1))
+        gs = GraphSearch()
+        path = gs.dfs(self.matrix, self.start, self.end)
+        print(path)
+        print(max(path, key=lambda tup: tup[1]))
+        self.paintPath(path)
 
     # Map the image by tiles and return the resulting image
 
@@ -152,3 +158,11 @@ class AIL():
                     self.image.paste(newImage, (x, y))
         else:
             pass
+
+    def get_start(self):
+        start = self.green_tiles
+        return start[random.randint(0, len(start)-1)]
+
+    def get_end(self):
+        end = self.red_tiles
+        return end[random.randint(0, len(end)-1)]
