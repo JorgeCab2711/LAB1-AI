@@ -47,6 +47,7 @@ class AIL():
         path = gs.dfs(self.matrix, self.start, self.end)
         print(path)
         print(max(path, key=lambda tup: tup[0]))
+        print(max(path, key=lambda tup: tup[1]))
         self.paintPath(path)
 
     # Map the image by tiles and return the resulting image
