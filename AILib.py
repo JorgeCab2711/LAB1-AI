@@ -46,7 +46,7 @@ class AIL():
         gs = GraphSearch()
         path = gs.dfs(self.matrix, self.start, self.end)
         print(path)
-        print(max(path, key=lambda tup: tup[1]))
+        print(max(path, key=lambda tup: tup[0]))
         self.paintPath(path)
 
     # Map the image by tiles and return the resulting image
@@ -59,8 +59,8 @@ class AIL():
         n_tiles = (self.image.width //
                    self.tile_size[0] + 1, self.image.height // self.tile_size[1] + 1)
 
-        self.matrix = [[0 for x in range(n_tiles[0]*10)]
-                       for y in range(n_tiles[1]*10)]
+        self.matrix = [[0 for x in range((n_tiles[0]*10)-9)]
+                       for y in range((n_tiles[1]*10)-9)]
 
         for i in range(n_tiles[0]):
             for j in range(n_tiles[1]):
@@ -151,13 +151,9 @@ class AIL():
 
     # paint the path tiles
     def paintPath(self, matrix):
-        if matrix is not None:
-            for x, y in matrix:
-                if x is not None and y is not None:
-                    newImage = Image.new('RGB', self.tile_size, (204, 90, 90))
-                    self.image.paste(newImage, (x, y))
-        else:
-            pass
+        for x, y in matrix:
+            newImage = Image.new('RGB', self.tile_size, (204, 90, 90))
+            self.image.paste(newImage, (int(x), int(y)))
 
     def get_start(self):
         start = self.green_tiles
