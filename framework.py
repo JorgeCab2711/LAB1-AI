@@ -34,29 +34,25 @@ class framework(ABC):
     #     pass
 
 
-class GraphSearch():
-    def __init__(self):
-        pass
-
-    def dfs(matrix, start, end, black_tiles):
-        stack = [start]
+class GraphSearch:
+    def dfs(self, matrix, start, end):
+        rows, cols = len(matrix), len(matrix[0])
         visited = set()
-        parent = {start: None}
-
+        stack = [start]
+        path = []
         while stack:
-            node = stack.pop()
-            visited.add(node)
-            for neighbor in [(node[0]+1, node[1]), (node[0]-1, node[1]), (node[0], node[1]+1), (node[0], node[1]-1)]:
-                if neighbor in matrix and neighbor not in black_tiles and neighbor not in visited:
-                    parent[neighbor] = node
+            curr = stack.pop()
+            path.append(curr)
+            if curr == end:
+                return path
+            visited.add(curr)
+            row, col = curr
+            neighbors = [(row - 1, col), (row + 1, col),
+                         (row, col - 1), (row, col + 1)]
+            for neighbor in neighbors:
+                r, c = neighbor
+                if 0 <= r < rows and 0 <= c < cols and neighbor not in visited and matrix[r][c] != "#":
                     stack.append(neighbor)
-            if node == end:
-                path = []
-                while node:
-                    path.append(node)
-                    node = parent[node]
-                return path[::-1]
-
         return None
 
     def find_path(self, start, end):
